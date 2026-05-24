@@ -1,0 +1,23 @@
+Attendance Report
+Date,2026-05-05
+Lecture Start,10:57:04
+Lecture End,
+Teacher,Malikhan Singh
+Subject,Math
+Class/Section,4TH SEC A
+
+Roll No.,Name,Course,Year,Section,Status
+2200650100027,Harsh Verma,B.Tech,4th Year,A,Present
+2200650100037,Kanishk Gautam,B.Tech,4th Year,A,Absent
+2200650100039,Kartik Gautam,B.Tech,4th Year,A,Absent
+
+UNKNOWN / UNREGISTERED INDIVIDUALS DETECTED
+#,Identifier,Status,Photo File
+1,Unknown-01,Intruder,unknown_20260505_105716_139390.jpg
+2,Unknown-02,Intruder,unknown_20260505_105720_942876.jpg
+3,Unknown-03,Intruder,unknown_20260505_105722_539687.jpg
+
+Total Students,3
+Present,1
+Absent,2
+Unknown Persons Detected,3

@@ -1,0 +1,21 @@
+Attendance Report
+Date,2026-05-05
+Lecture Start,15:09:16
+Lecture End,15:10:00
+Teacher,P K Sharma
+Subject,Math
+Class/Section,4TH SEC A
+
+Roll No.,Name,Course,Year,Section,Status
+2200650100027,Harsh Verma,B.Tech,4th Year,A,Present
+2200650100037,Kanishk Gautam,B.Tech,4th Year,A,Present
+2200650100039,Kartik Gautam,B.Tech,4th Year,A,Absent
+
+UNKNOWN / UNREGISTERED INDIVIDUALS DETECTED
+#,Identifier,Status,Photo File
+1,Unknown-01,Intruder,unknown_20260505_150919_892615.jpg
+
+Total Students,3
+Present,2
+Absent,1
+Unknown Persons Detected,1

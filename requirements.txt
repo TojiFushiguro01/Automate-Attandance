@@ -1,0 +1,21 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  Automated Attendance Marking System — Python Requirements
+#  Install all with:  pip install -r requirements.txt
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Web Framework ──────────────────────────────────────────────────────────────
+flask>=3.0.0                # Web server + routing + template engine
+flask-cors>=4.0.0           # Cross-Origin Resource Sharing headers
+
+# ── Computer Vision ────────────────────────────────────────────────────────────
+opencv-python>=4.8.0        # Camera capture, frame processing, drawing overlays
+
+# ── Face Recognition ───────────────────────────────────────────────────────────
+insightface>=0.7.3          # RetinaFace detection + ArcFace recognition (buffalo_sc model)
+onnxruntime>=1.16.0         # Runs InsightFace ONNX models on CPU (no GPU required)
+
+# ── Numerical Computing ────────────────────────────────────────────────────────
+numpy>=1.24.0               # Array math, cosine similarity for face embeddings
+
+# ── Image Handling ─────────────────────────────────────────────────────────────
+pillow>=10.0.0              # Image I/O used internally by InsightFace

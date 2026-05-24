@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Attendance System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2300e5a0'/><path d='M8 10h10M8 16h10M8 22h6' stroke='%23000' stroke-width='2.5' stroke-linecap='round'/><circle cx='24' cy='22' r='4' fill='%23000'/><path d='M22 22l1.5 1.5L26 20' stroke='%2300e5a0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #090b0f; --surface:#0f1117; --card:#12151d;
+  --border:  #1c2030; --border2:#252d42;
+  --accent:  #00e5a0; --blue:#00b4ff; --danger:#ff4560; --warn:#ffb830;
+  --text:    #dde2f0; --muted:#5a6380; --radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+.shell{display:flex;height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{width:232px;min-width:232px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-text-top{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text)}
+.logo-text-bot{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;margin-top:1px}
+.nav{padding:10px 8px;flex:1}
+.nb{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:500;border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:2px}
+.nb:hover{background:var(--border);color:var(--text)}
+.nb.active{background:rgba(0,229,160,.1);color:var(--accent)}
+.nb .dot{width:5px;height:5px;border-radius:50%;background:var(--border2);margin-left:auto;flex-shrink:0}
+.nb.active .dot{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.side-sess{margin:8px;padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--card)}
+.side-sess.live{border-color:rgba(0,229,160,.25);background:rgba(0,229,160,.05)}
+.ss-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.ss-val{font-size:13px;font-weight:600;color:var(--muted);margin-top:3px}
+.side-sess.live .ss-val{color:var(--accent)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;min-height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px}
+.topbar-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;flex:1}
+.topbar-clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+
+.page{display:none;flex:1;overflow-y:auto;padding:22px}
+.page.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:18px}
+.card-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+
+/* ── Forms ── */
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:120px}
+.fg label{font-size:11.5px;color:var(--muted);font-weight:500}
+input,select{background:var(--bg);border:1px solid var(--border2);border-radius:7px;color:var(--text);padding:8px 11px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--surface)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-green{background:var(--accent);color:#000}.btn-green:hover:not(:disabled){filter:brightness(1.1)}
+.btn-red{background:rgba(255,69,96,.12);color:var(--danger);border:1px solid rgba(255,69,96,.25)}.btn-red:hover:not(:disabled){background:rgba(255,69,96,.22)}
+.btn-ghost{background:var(--border);color:var(--text)}.btn-ghost:hover:not(:disabled){background:var(--border2)}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid rgba(0,229,160,.3)}.btn-outline:hover:not(:disabled){background:rgba(0,229,160,.07)}
+.btn-blue{background:rgba(0,180,255,.12);color:var(--blue);border:1px solid rgba(0,180,255,.25)}.btn-blue:hover:not(:disabled){background:rgba(0,180,255,.22)}
+.btn-warn{background:rgba(255,184,48,.12);color:var(--warn);border:1px solid rgba(255,184,48,.25)}.btn-warn:hover:not(:disabled){background:rgba(255,184,48,.22)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13.5px}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.mono{font-family:'DM Mono',monospace;font-size:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace}
+.b-green{background:rgba(0,229,160,.12);color:var(--accent)}
+.b-red{background:rgba(255,69,96,.1);color:var(--danger)}
+.b-blue{background:rgba(0,180,255,.1);color:var(--blue)}
+.b-grey{background:var(--border);color:var(--muted)}
+.b-warn{background:rgba(255,184,48,.12);color:var(--warn)}
+
+/* ── Live layout ── */
+.live-layout{display:grid;grid-template-columns:1fr 320px;gap:18px}
+.feed-box{background:#000;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center}
+.feed-box img{width:100%;height:100%;object-fit:cover;display:none}
+.feed-empty{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--muted)}
+.feed-empty svg{opacity:.25}.feed-empty p{font-size:13px}
+.live-pill{position:absolute;top:10px;left:10px;display:none;align-items:center;gap:6px;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);padding:4px 10px;border-radius:99px;font-family:'DM Mono',monospace;font-size:11px;color:var(--danger)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--danger);animation:blink 1.1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── Attendance panel ── */
+.att-panel{display:flex;flex-direction:column;gap:12px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-family:'DM Mono',monospace}
+.prog-bar{height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.att-list-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.att-list-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.att-list-head span{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.att-rows{max-height:340px;overflow-y:auto}
+.att-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);gap:12px;min-height:42px}
+.att-row:last-child{border-bottom:none}
+.att-row.unknown-row{background:rgba(255,184,48,.04)}
+.att-roll{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);width:60px;flex-shrink:0;line-height:1.4}
+.att-name{flex:1;font-size:13.5px;line-height:1.4;font-weight:500}
+.toggle{width:30px;height:17px;border-radius:99px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .15s}
+.toggle.on{background:var(--accent)}.toggle.off{background:var(--border2)}
+.toggle::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:2px;transition:left .15s}
+.toggle.on::after{left:15px}.toggle.off::after{left:2px}
+
+/* ── Session bar ── */
+.sess-bar{display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:11px 16px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.18);border-radius:var(--radius);margin-bottom:16px}
+.sess-bar-info{flex:1;font-size:13px;color:var(--text)}
+.sess-time-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);background:rgba(0,229,160,.1);padding:3px 10px;border-radius:99px;white-space:nowrap}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--border);border-radius:99px;padding:5px 12px;font-size:12.5px}
+.chip-x{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0}.chip-x:hover{color:var(--danger)}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* ── Overlay / Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:200}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:560px;max-height:90vh;overflow-y:auto;padding:26px;position:relative}
+.modal h2{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px}
+.modal .sub{font-size:12px;color:var(--muted);margin-bottom:16px}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}.modal-close:hover{color:var(--text)}
+
+/* ── Camera box ── */
+.cam-box{background:#000;border-radius:8px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative}
+.cam-box img{width:100%;height:100%;object-fit:cover;display:none}
+.cam-empty{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted)}
+.cam-empty svg{opacity:.25}.cam-empty p{font-size:12px}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;border-radius:8px;transition:opacity .08s}
+.cap-count-badge{position:absolute;bottom:9px;right:9px;background:rgba(0,0,0,.65);color:var(--accent);font-family:'DM Mono',monospace;font-size:11px;padding:3px 9px;border-radius:99px}
+
+/* ── Photo strip ── */
+.photo-strip-wrap{margin-top:4px;margin-bottom:14px}
+.photo-strip-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.photo-strip{display:flex;gap:8px;flex-wrap:wrap}
+.photo-thumb{position:relative;width:76px;height:76px;border-radius:7px;overflow:hidden;border:2px solid var(--border);flex-shrink:0}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .del-btn{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.photo-thumb:hover .del-btn{opacity:1}.photo-thumb .del-btn:hover{background:var(--danger)}
+.photo-strip-empty{color:var(--muted);font-size:12px;padding:12px 0}
+.modal-btns{display:flex;gap:9px;justify-content:flex-end}
+
+/* ── Unknown alert modal ── */
+.alert-modal{background:var(--surface);border:1px solid rgba(255,184,48,.35);border-radius:14px;width:620px;max-height:90vh;overflow-y:auto;padding:28px;position:relative}
+.alert-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.alert-icon{width:48px;height:48px;border-radius:50%;background:rgba(255,184,48,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--warn)}
+.alert-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.unknown-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.unknown-card{background:var(--card);border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.unknown-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.unknown-card-label{padding:6px 8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--warn);text-align:center}
+
+/* ── Toast ── */
+.toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:999}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 15px;font-size:13px;display:flex;align-items:center;gap:9px;animation:tin .2s ease;max-width:290px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+@keyframes tin{from{transform:translateX(16px);opacity:0}to{transform:none;opacity:1}}
+.toast.ok{border-color:rgba(0,229,160,.3)}.toast.err{border-color:rgba(255,69,96,.3)}.toast.warn{border-color:rgba(255,184,48,.3)}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty svg{opacity:.2;margin-bottom:12px}.empty p{font-size:13px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <svg width="34" height="34" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M7 10h11M7 16h11M7 22h7" stroke="#000" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="22" r="4.5" fill="#000"/><path d="M22 22l1.5 1.5L26 20" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><div class="logo-text-top">Attendance</div><div class="logo-text-bot">SYSTEM</div></div>
+  </div>
+  <nav class="nav">
+    <button class="nb active" onclick="go('live',this)">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/></svg>
+      Live Session <span class="dot"></span>
+    </button>
+    <button class="nb" onclick="go('students',this)">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Students <span class="dot"></span>
+    </button>
+    <button class="nb" onclick="go('manage',this)">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/></svg>
+      Classes &amp; Teachers <span class="dot"></span>
+    </button>
+  </nav>
+  <div class="side-sess" id="sideInfo">
+    <div class="ss-label">Session</div>
+    <div class="ss-val" id="sideVal">Inactive</div>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="ttitle">Live Session</span>
+    <span class="topbar-clock" id="tclock"></span>
+  </div>
+
+  <!-- ══ LIVE ══ -->
+  <div class="page active" id="page-live">
+    <div class="card" id="setupCard">
+      <div class="card-title">New Session</div>
+      <div class="row" style="margin-bottom:12px;">
+        <div class="fg"><label>Teacher</label><select id="selTeacher"><option value="">— Select —</option></select></div>
+        <div class="fg"><label>Subject</label><input id="inSubject" placeholder="e.g. Mathematics"/></div>
+        <div class="fg"><label>Class / Section</label><select id="selClass"><option value="">— Select —</option></select></div>
+      </div>
+      <button class="btn btn-green" onclick="startSession()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Start Session
+      </button>
+    </div>
+
+    <!-- Active session bar -->
+    <div class="sess-bar" id="sessBar">
+      <div class="pulse"></div>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);">LIVE</span>
+      <span class="sess-bar-info" id="sessBarInfo"></span>
+      <span class="sess-time-badge" id="sessTimeBadge">00:00:00</span>
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="btn btn-red btn-sm" onclick="stopSession()">Stop</button>
+    </div>
+
+    <div class="live-layout" id="liveLayout" style="display:none;">
+      <div>
+        <div class="feed-box" id="feedBox">
+          <div class="feed-empty" id="feedEmpty">
+            <svg width="50" height="50" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M23 7 16 12l7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <p>Camera feed appears here</p>
+          </div>
+          <img id="feedImg" src="" alt="feed"/>
+          <div class="live-pill" id="livePill"><div class="pulse"></div>LIVE</div>
+        </div>
+      </div>
+      <div class="att-panel">
+        <!-- 3 stats: present / absent / unknown -->
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-num" id="sPresent" style="color:var(--accent)">0</div><div class="stat-lbl">Present</div></div>
+          <div class="stat-box"><div class="stat-num" id="sAbsent"  style="color:var(--danger)">0</div><div class="stat-lbl">Absent</div></div>
+          <div class="stat-box"><div class="stat-num" id="sUnknown" style="color:var(--warn)">0</div><div class="stat-lbl">Unknown</div></div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="att-list-box">
+          <div class="att-list-head"><span>Attendance</span><span id="attMeta">0/0</span></div>
+          <div class="att-rows" id="attRows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STUDENTS ══ -->
+  <div class="page" id="page-students">
+    <div class="card">
+      <div class="card-title">Add Student</div>
+      <div class="row">
+        <div class="fg" style="max-width:110px;"><label>Roll No.</label><input id="nRoll" placeholder="e.g. 001"/></div>
+        <div class="fg"><label>Full Name</label><input id="nName" placeholder="Student full name"/></div>
+        <div class="fg" style="max-width:170px;"><label>Course</label><input id="nCourse" placeholder="e.g. B.Tech, BCA"/></div>
+        <div class="fg" style="max-width:110px;"><label>Year</label>
+          <select id="nYear"><option value="">— Year —</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select>
+        </div>
+        <div class="fg" style="max-width:100px;"><label>Section</label><input id="nSection" placeholder="A, B, C"/></div>
+        <div class="fg" style="max-width:120px;justify-content:flex-end;"><label>&nbsp;</label><button class="btn btn-green" onclick="addStudent()">Add Student</button></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span class="card-title" style="margin:0;">Registry</span>
+        <input id="search" placeholder="Search name or roll…" style="width:200px;" oninput="filterStudents()"/>
+      </div>
+      <div id="stuTable"></div>
+    </div>
+  </div>
+
+  <!-- ══ MANAGE ══ -->
+  <div class="page" id="page-manage">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Classes &amp; Sections</div>
+        <div class="row" style="margin-bottom:0;">
+          <div class="fg"><label>Name</label><input id="nClass2" placeholder="e.g. 10-A, Sem-3"/></div>
+          <div class="fg" style="max-width:90px;justify-content:flex-end;"><label>&nbsp;</label><button class="btn btn-green" onclick="addClass()">Add</button></div>
+        </div>
+        <hr class="divider">
+        <div class="chips" id="classChips"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Teachers</div>
+        <div class="row" style="margin-bottom:0;">
+          <div class="fg"><label>Name</label><input id="nTeacher" placeholder="e.g. Dr. Smith"/></div>
+          <div class="fg" style="max-width:90px;justify-content:flex-end;"><label>&nbsp;</label><button class="btn btn-green" onclick="addTeacher()">Add</button></div>
+        </div>
+        <hr class="divider">
+        <div class="chips" id="teacherChips"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ Photo Modal ══ -->
+<div class="overlay" id="photoOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2>Capture Photos</h2>
+    <p class="sub" id="modalSub">Position the student in front of the camera and click Capture.</p>
+    <div class="cam-box">
+      <img id="mFeed" src="" alt="camera preview"/>
+      <div class="cam-empty" id="camEmpty">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M23 7 16 12l7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <p>Loading camera…</p>
+      </div>
+      <div class="flash" id="flashEl"></div>
+      <div class="cap-count-badge" id="capBadge">0 photos</div>
+    </div>
+    <div class="photo-strip-wrap">
+      <div class="photo-strip-label">
+        <span>Captured Photos</span>
+        <span id="stripCount" style="color:var(--muted);font-size:10px;"></span>
+      </div>
+      <div class="photo-strip" id="photoStrip">
+        <div class="photo-strip-empty">No photos yet — capture some above.</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
+      <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Tip: take 4–6 from slightly different angles</span>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="closeModal()">Done</button>
+        <button class="btn btn-green" id="captureBtn" onclick="capturePhoto()" disabled>
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M20 7h-3.382l-1-2H8.382l-1 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg>
+          Capture
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Unknown Alert Modal ══ -->
+<div class="overlay" id="unknownOverlay">
+  <div class="alert-modal">
+    <div class="alert-header">
+      <div class="alert-icon">
+        <svg width="24" height="24" fill="none" stroke="var(--warn)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div class="alert-title">Unknown Person Detected</div>
+        <div class="alert-sub" id="alertSub">One or more unregistered individuals were detected during this session.</div>
+      </div>
+    </div>
+
+    <!-- Unknown photos grid -->
+    <div class="unknown-grid" id="unknownGrid"></div>
+
+    <!-- Session summary inside alert -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:18px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Session Summary</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;" id="alertSummary"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeUnknownAlert()">Dismiss</button>
+      <button class="btn btn-outline" onclick="exportCSV(); closeUnknownAlert();">Export CSV &amp; Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let sessionActive  = false;
+let sessionStart   = null;   // Date object — for elapsed timer
+let elapsedTimer   = null;
+let modalRoll      = null;
+let attTimer       = null;
+let allStudents    = [];
+
+// ── Clock ──────────────────────────────────────────────────────────────────────
+setInterval(()=>{ document.getElementById('tclock').textContent = new Date().toLocaleTimeString(); }, 1000);
+document.getElementById('tclock').textContent = new Date().toLocaleTimeString();
+
+// ── Nav ────────────────────────────────────────────────────────────────────────
+function go(page, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('ttitle').textContent = {live:'Live Session',students:'Student Registry',manage:'Classes & Teachers'}[page];
+  if (page==='students') loadStudents();
+  if (page==='manage')   loadManage();
+  if (page==='live')     loadDropdowns();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type==='ok'?'✓':type==='warn'?'⚠':'✕'}</span>${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+// ── API ────────────────────────────────────────────────────────────────────────
+const api = (url, opts={}) =>
+  fetch(url, {headers:{'Content-Type':'application/json'}, ...opts}).then(r=>r.json());
+
+// ── Dropdowns ──────────────────────────────────────────────────────────────────
+async function loadDropdowns() {
+  const [classes, teachers] = await Promise.all([api('/api/classes'), api('/api/teachers')]);
+  const sc = document.getElementById('selClass'); if(sc){ const v=sc.value; sc.innerHTML='<option value="">— Select —</option>'+classes.map(c=>`<option>${c}</option>`).join(''); sc.value=v; }
+  const st = document.getElementById('selTeacher'); if(st){ const v=st.value; st.innerHTML='<option value="">— Select —</option>'+teachers.map(t=>`<option>${t}</option>`).join(''); st.value=v; }
+}
+
+// ── Manage ─────────────────────────────────────────────────────────────────────
+async function loadManage() {
+  const [classes,teachers] = await Promise.all([api('/api/classes'),api('/api/teachers')]);
+  document.getElementById('classChips').innerHTML = classes.length
+    ? classes.map(c=>`<div class="chip">${c}<button class="chip-x" onclick="delClass('${c}')">×</button></div>`).join('')
+    : '<span style="color:var(--muted);font-size:12px;">None yet</span>';
+  document.getElementById('teacherChips').innerHTML = teachers.length
+    ? teachers.map(t=>`<div class="chip">${t}<button class="chip-x" onclick="delTeacher('${t}')">×</button></div>`).join('')
+    : '<span style="color:var(--muted);font-size:12px;">None yet</span>';
+}
+async function addClass(){ const v=document.getElementById('nClass2').value.trim(); if(!v)return; await api('/api/classes',{method:'POST',body:JSON.stringify({name:v})}); document.getElementById('nClass2').value=''; loadManage(); loadDropdowns(); toast('Class added'); }
+async function delClass(name){ await api(`/api/classes/${encodeURIComponent(name)}`,{method:'DELETE'}); loadManage(); loadDropdowns(); }
+async function addTeacher(){ const v=document.getElementById('nTeacher').value.trim(); if(!v)return; await api('/api/teachers',{method:'POST',body:JSON.stringify({name:v})}); document.getElementById('nTeacher').value=''; loadManage(); loadDropdowns(); toast('Teacher added'); }
+async function delTeacher(name){ await api(`/api/teachers/${encodeURIComponent(name)}`,{method:'DELETE'}); loadManage(); loadDropdowns(); }
+
+// ── Students ───────────────────────────────────────────────────────────────────
+async function loadStudents(){ allStudents=await api('/api/students'); renderStudents(allStudents); }
+function filterStudents(){ const q=document.getElementById('search').value.toLowerCase(); renderStudents(allStudents.filter(s=>s.name.toLowerCase().includes(q)||s.roll_no.toLowerCase().includes(q))); }
+
+function renderStudents(list) {
+  const wrap = document.getElementById('stuTable');
+  if (!list.length){ wrap.innerHTML=`<div class="empty"><svg width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No students yet</p></div>`; return; }
+  wrap.innerHTML=`<table><thead><tr><th>Roll No.</th><th>Name</th><th>Course</th><th>Year</th><th>Section</th><th>Photos</th><th>Actions</th></tr></thead><tbody>
+    ${list.map(s=>`<tr>
+      <td class="mono">${s.roll_no}</td><td>${s.name}</td><td>${s.course||'—'}</td><td>${s.year||'—'}</td><td>${s.section||'—'}</td>
+      <td><span class="badge ${s.photos>0?'b-blue':'b-grey'}">${s.photos||0} photos</span></td>
+      <td style="display:flex;gap:8px;">
+        <button class="btn btn-blue btn-sm" onclick="openModal('${s.roll_no}','${s.name.replace(/'/g,"\\'")}')">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M20 7h-3.382l-1-2H8.382l-1 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg>Photos
+        </button>
+        <button class="btn btn-red btn-sm" onclick="delStudent('${s.roll_no}')">Remove</button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function addStudent(){
+  const roll=document.getElementById('nRoll').value.trim(), name=document.getElementById('nName').value.trim(),
+        course=document.getElementById('nCourse').value.trim(), year=document.getElementById('nYear').value,
+        section=document.getElementById('nSection').value.trim();
+  if(!roll||!name){toast('Roll number and name required','err');return;}
+  const res=await api('/api/students',{method:'POST',body:JSON.stringify({roll_no:roll,name,course,year,section})});
+  if(res.error){toast(res.error,'err');return;}
+  ['nRoll','nName','nCourse','nSection'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nYear').value='';
+  toast(`${name} added`); loadStudents();
+}
+async function delStudent(roll_no){ if(!confirm('Remove this student and all their photos?'))return; await api(`/api/students/${roll_no}`,{method:'DELETE'}); toast('Student removed'); loadStudents(); }
+
+// ── Photo Modal ────────────────────────────────────────────────────────────────
+async function openModal(roll, name){
+  modalRoll=roll;
+  document.getElementById('modalSub').textContent=`${name}  ·  Roll: ${roll}`;
+  document.getElementById('photoOverlay').classList.add('open');
+  const feed=document.getElementById('mFeed');
+  feed.src=(sessionActive?'/video_feed':'/capture_feed')+'?'+Date.now();
+  feed.style.display='block';
+  document.getElementById('camEmpty').style.display='none';
+  document.getElementById('captureBtn').disabled=false;
+  await loadPhotoStrip(roll);
+}
+function closeModal(){
+  document.getElementById('photoOverlay').classList.remove('open');
+  const f=document.getElementById('mFeed'); f.src=''; f.style.display='none';
+  document.getElementById('camEmpty').style.display='flex';
+  document.getElementById('captureBtn').disabled=true;
+  document.getElementById('photoStrip').innerHTML='<div class="photo-strip-empty">No photos yet — capture some above.</div>';
+  loadStudents();
+}
+async function capturePhoto(){
+  const btn=document.getElementById('captureBtn'); btn.disabled=true;
+  const res=await api(`/api/students/${modalRoll}/capture`,{method:'POST'});
+  btn.disabled=false;
+  if(res.ok){
+    const fl=document.getElementById('flashEl'); fl.style.opacity='0.6'; setTimeout(()=>fl.style.opacity='0',120);
+    document.getElementById('capBadge').textContent=`${res.photos} photos`;
+    toast(res.face_found?`Photo ${res.photos} captured ✓`:`Saved — no face detected. Try again`,'ok');
+    await loadPhotoStrip(modalRoll);
+  } else toast('Failed to capture','err');
+}
+async function loadPhotoStrip(roll_no){
+  const files=await api(`/api/students/${roll_no}/photos`);
+  const strip=document.getElementById('photoStrip');
+  document.getElementById('capBadge').textContent=`${files.length} photos`;
+  document.getElementById('stripCount').textContent=`${files.length} total`;
+  if(!files.length){ strip.innerHTML='<div class="photo-strip-empty">No photos yet — capture some above.</div>'; return; }
+  strip.innerHTML=files.map(fname=>`
+    <div class="photo-thumb">
+      <img src="/api/students/${roll_no}/photos/${fname}?t=${Date.now()}" alt="${fname}"/>
+      <button class="del-btn" onclick="deletePhoto('${roll_no}','${fname}')">×</button>
+    </div>`).join('');
+}
+async function deletePhoto(roll_no,filename){
+  const res=await api(`/api/students/${roll_no}/photos/${filename}`,{method:'DELETE'});
+  if(res.ok){ toast('Photo deleted'); await loadPhotoStrip(roll_no); loadStudents(); }
+}
+
+// ── Elapsed timer ──────────────────────────────────────────────────────────────
+function startElapsed(){
+  sessionStart = Date.now();
+  elapsedTimer = setInterval(()=>{
+    const secs = Math.floor((Date.now()-sessionStart)/1000);
+    const h = String(Math.floor(secs/3600)).padStart(2,'0');
+    const m = String(Math.floor((secs%3600)/60)).padStart(2,'0');
+    const s = String(secs%60).padStart(2,'0');
+    document.getElementById('sessTimeBadge').textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+function stopElapsed(){ clearInterval(elapsedTimer); }
+
+// ── Session ────────────────────────────────────────────────────────────────────
+async function startSession(){
+  const teacher=document.getElementById('selTeacher').value,
+        subject=document.getElementById('inSubject').value.trim(),
+        class_name=document.getElementById('selClass').value;
+  if(!teacher||!subject||!class_name){toast('Fill in all three fields','err');return;}
+  const res=await api('/api/session/start',{method:'POST',body:JSON.stringify({teacher,subject,class_name})});
+  sessionActive=true;
+  showLive(res.session);
+  startAttTimer();
+  startElapsed();
+  toast(`Session started — ${subject}`);
+}
+
+async function stopSession(){
+  // ── Auto-save prompt on session end ──────────────────────────────────────────
+  const wantCSV = confirm('Save attendance CSV before stopping the session?');
+  if(wantCSV) await exportCSV();
+
+  const res=await api('/api/session/stop',{method:'POST'});
+  sessionActive=false;
+  stopElapsed();
+  hideLive();
+  stopAttTimer();
+
+  // Show unknown alert if any unknowns were detected
+  if(res.unknown_count && res.unknown_count > 0){
+    await showUnknownAlert(res.unknown_photos, res);
+  } else {
+    toast('Session ended');
+  }
+}
+
+function showLive(s){
+  document.getElementById('setupCard').style.display='none';
+  document.getElementById('sessBar').style.display='flex';
+  document.getElementById('sessBarInfo').textContent=`${s.teacher}  ·  ${s.subject}  ·  ${s.class_name}  ·  ${s.date}  ·  Started ${s.start_time}`;
+  document.getElementById('liveLayout').style.display='grid';
+  const img=document.getElementById('feedImg'); img.src='/video_feed?'+Date.now(); img.style.display='block';
+  document.getElementById('feedEmpty').style.display='none';
+  document.getElementById('livePill').style.display='flex';
+  document.getElementById('sideInfo').classList.add('live');
+  document.getElementById('sideVal').textContent=s.subject;
+}
+function hideLive(){
+  document.getElementById('setupCard').style.display='';
+  document.getElementById('sessBar').style.display='none';
+  document.getElementById('liveLayout').style.display='none';
+  const img=document.getElementById('feedImg'); img.style.display='none'; img.src='';
+  document.getElementById('feedEmpty').style.display='flex';
+  document.getElementById('livePill').style.display='none';
+  document.getElementById('sideInfo').classList.remove('live');
+  document.getElementById('sideVal').textContent='Inactive';
+}
+
+// ── Unknown alert modal ────────────────────────────────────────────────────────
+async function showUnknownAlert(photos, stopRes){
+  const status = await api('/api/session/status');
+  const s      = status.session;
+
+  // Build photo grid
+  const grid = document.getElementById('unknownGrid');
+  if(photos && photos.length){
+    grid.innerHTML = photos.map((fname,i)=>`
+      <div class="unknown-card">
+        <img src="/api/unknowns/${fname}" alt="Unknown ${i+1}" onerror="this.style.display='none'"/>
+        <div class="unknown-card-label">Unknown ${i+1}</div>
+      </div>`).join('');
+  } else {
+    grid.innerHTML = `<p style="color:var(--muted);font-size:13px;">No photos captured (unknowns appeared briefly).</p>`;
+  }
+
+  // Alert subtitle
+  const count = photos ? photos.length : 0;
+  document.getElementById('alertSub').textContent =
+    `${count} unregistered individual${count!==1?'s':''} detected during this session. Their photos have been saved.`;
+
+  // Session summary
+  const rows = [
+    ['Date',          s.date||'—'],
+    ['Start Time',    s.start_time||'—'],
+    ['End Time',      s.end_time||'—'],
+    ['Teacher',       s.teacher||'—'],
+    ['Subject',       s.subject||'—'],
+    ['Class',         s.class_name||'—'],
+  ];
+  document.getElementById('alertSummary').innerHTML = rows.map(([k,v])=>`
+    <div style="color:var(--muted);font-size:12px;">${k}</div>
+    <div style="font-weight:500;">${v}</div>`).join('');
+
+  document.getElementById('unknownOverlay').classList.add('open');
+}
+function closeUnknownAlert(){
+  document.getElementById('unknownOverlay').classList.remove('open');
+  toast('Session ended');
+}
+
+// ── Attendance refresh ─────────────────────────────────────────────────────────
+function startAttTimer(){ refreshAtt(); attTimer=setInterval(refreshAtt,2500); }
+function stopAttTimer(){ clearInterval(attTimer); }
+
+async function refreshAtt(){
+  const [rows, status] = await Promise.all([
+    api('/api/attendance/preview'),
+    api('/api/session/status')
+  ]);
+  const knownRows  = rows.filter(r=>r.roll_no.startsWith('UNK-')===false);
+  const unknRows   = rows.filter(r=>r.roll_no.startsWith('UNK-'));
+  const present    = knownRows.filter(r=>r.status==='Present').length;
+  const total      = knownRows.length;
+  // Use authoritative unknown_count from /api/session/status (counts all unique unknowns seen)
+  const unknCount  = (status.unknown_count != null) ? status.unknown_count : unknRows.length;
+
+  document.getElementById('sPresent').textContent = present;
+  document.getElementById('sAbsent').textContent  = total-present;
+  document.getElementById('sUnknown').textContent = unknCount;
+  document.getElementById('progFill').style.width = total?`${(present/total*100).toFixed(0)}%`:'0%';
+  document.getElementById('attMeta').textContent  = `${present}/${total}`;
+
+  const body=document.getElementById('attRows');
+  let html='';
+  if(!knownRows.length && !unknRows.length){
+    body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">No students</div>`;
+    return;
+  }
+
+  // Known students
+  html += knownRows.map(r=>`
+    <div class="att-row">
+      <span class="att-roll">${r.roll_no}</span>
+      <span class="att-name">${r.name}</span>
+      <button class="toggle ${r.status==='Present'?'on':'off'}" onclick="toggleMark('${r.roll_no}')"></button>
+    </div>`).join('');
+
+  // Unknown divider + rows
+  if(unknRows.length){
+    html += `<div style="padding:6px 14px;background:rgba(255,184,48,.07);border-top:1px solid var(--border);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;color:var(--warn);text-transform:uppercase;">⚠ Unknowns Detected</div>`;
+    html += unknRows.map(r=>`
+      <div class="att-row unknown-row">
+        <span class="att-roll" style="color:var(--warn);">${r.roll_no}</span>
+        <span class="att-name" style="color:var(--warn);">Unknown Person</span>
+        <span class="badge b-warn">Intruder</span>
+      </div>`).join('');
+  }
+
+  body.innerHTML=html;
+}
+
+async function toggleMark(roll_no){
+  await api('/api/session/mark',{method:'POST',body:JSON.stringify({roll_no})});
+  refreshAtt();
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+async function exportCSV(){
+  const res=await fetch('/api/attendance/export',{method:'POST',headers:{'Content-Type':'application/json'}});
+  const blob=await res.blob();
+  const cd=res.headers.get('Content-Disposition')||'';
+  const name=cd.match(/filename=(.+)/)?.[1]||'attendance.csv';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  URL.revokeObjectURL(a.href);
+  toast('CSV exported!');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+(async()=>{
+  await loadDropdowns();
+  const status=await api('/api/session/status');
+  if(status.active){ sessionActive=true; showLive(status.session); startAttTimer(); startElapsed(); }
+})();
+</script>
+</body>
+</html>
